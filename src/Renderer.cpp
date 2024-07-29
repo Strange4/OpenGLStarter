@@ -34,6 +34,8 @@ void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& 
 
 void Renderer::ProcessUserInput(GLFWwindow* window, glm::mat4& model)
 {
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     model = glm::translate(model, glm::vec3(0.0f, 0.1f, 0.0f));
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
