@@ -1,6 +1,9 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "IndexBuffer.h"
 #include "Shader.h"
 #include "VertexArray.h"
@@ -19,4 +22,5 @@ class Renderer
 public:
     void Clear() const;
     void Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const;
+    void ProcessUserInput(GLFWwindow* window, glm::mat4& model);
 };

@@ -31,3 +31,23 @@ void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& 
 
     GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr)); // issuing Draw Call
 }
+
+void Renderer::ProcessUserInput(GLFWwindow* window, glm::mat4& model)
+{
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    model = glm::translate(model, glm::vec3(0.0f, 0.1f, 0.0f));
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    model = glm::translate(model, glm::vec3(0.0f, -0.1f, 0.0f));
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    model = glm::translate(model, glm::vec3(-0.1f, 0.0f, 0.0f));
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    model = glm::translate(model, glm::vec3(0.1f, 0.0f, 0.0f));
+  if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    model = glm::rotate(model, glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    model = glm::rotate(model, -glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+  if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+    model = glm::scale(model, glm::vec3(1.1f, 1.1f, 1.0f));
+  if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+    model = glm::scale(model, glm::vec3(1.0f / 1.1f, 1.0f / 1.1f, 1.0f));
+}
