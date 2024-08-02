@@ -18,7 +18,7 @@ void VertexArray::addBuffer(const VertexBuffer& vertex_buffer, const VertexBuffe
     const std::vector<VertexAttribute>& elements = layout.getElements();
 
     unsigned int offset = 0;
-    for (size_t i = 0; i < elements.size(); i++)
+    for (GLuint i = 0; i < elements.size(); i++)
     {
         const VertexAttribute& attrib = elements[i];
         glEnableVertexAttribArray(i);

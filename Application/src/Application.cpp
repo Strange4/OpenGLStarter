@@ -22,7 +22,7 @@ int main(void)
 {
     GLFWwindow* window = nullptr;
 
-    if (!setup_window(&window, "Triangle Demo"))
+    if (!setup_window(&window, "Triangle Demo", 640, 480))
         return -1;
 
     float positions[] = {
@@ -53,18 +53,18 @@ int main(void)
 
 
 
-    glEnableVertexAttribArray(0);
+    //glEnableVertexAttribArray(0);
     // bind the index 0 of the currently bound array buffer to the currently bound vao
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 
     IndexBuffer indexBuffer(vertexIndeces, 6);
 
-    // shader use
-    GLuint shader_program = create_shader(read_from_file("shaders/vertex.glsl"), read_from_file("shaders/fragment.glsl"));
-    glUseProgram(shader_program);
+    ShaderProgram shaderProgram({
+        Shader("shaders/fragment.glsl", GL_FRAGMENT_SHADER),
+        Shader("shaders/vertex.glsl", GL_VERTEX_SHADER)
+    });
 
-    int colorLocation = glGetUniformLocation(shader_program, "u_color");
-    _ASSERT(colorLocation != -1);
+    shaderProgram.bind();
 
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     float g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -79,7 +79,7 @@ int main(void)
     vertexBuffer.unbind();
     indexBuffer.unbind();
 
-
+    glClearColor(0.6f, 0.0f, 0.0f, 1.0f);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -91,7 +91,8 @@ int main(void)
         bounce_color(&g, &g_inc);
         bounce_color(&b, &b_inc);
 
-        glUniform4f(colorLocation, r, g, b, 1.0);
+        shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
+        //glUniform4f(colorLocation, r, g, b, 1.0);
 
         indexBuffer.bind();
         vertexArray.bind();
@@ -104,10 +105,6 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-
-    // delete the shader program
-    glDeleteProgram(shader_program);
 
     glfwTerminate();
     return 0;

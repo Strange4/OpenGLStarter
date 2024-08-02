@@ -101,8 +101,28 @@ static void handle_error(GLenum source, GLenum type, GLuint id, GLenum severity,
     __debugbreak(); // MSVC compiler intrisic but it's okay since we're all using it
 }
 
+static void resize_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 
-bool setup_window(GLFWwindow** window, const char* title)
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+
+    switch (key)
+    {
+    case GLFW_KEY_ESCAPE: 
+        glfwWindowShouldClose(window);
+        break;
+    default:
+        break;
+    }
+}
+
+
+bool setup_window(GLFWwindow** window, const std::string& title, int width, int height)
 {
     /* Initialize the library */
     if (!glfwInit())
@@ -119,8 +139,8 @@ bool setup_window(GLFWwindow** window, const char* title)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // the core profile adds more restrictions
 
-    /* Create a windowed mode window and its OpenGL context */
-    *window = glfwCreateWindow(640, 480, title, NULL, NULL);
+    // Create a windowed mode window and its OpenGL context
+    *window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
     if (!window)
     {
         std::cerr << "There was an error while creating the window" << std::endl;
@@ -128,8 +148,10 @@ bool setup_window(GLFWwindow** window, const char* title)
         return false;
     }
 
+    glViewport(0, 0, width, height);
 
-    /* Make the window's context current */
+
+    // Make the window's context current
     glfwMakeContextCurrent(*window);
 
     // swap everytime there can be a new frame and don't swap before
@@ -138,13 +160,14 @@ bool setup_window(GLFWwindow** window, const char* title)
     if (glewInit() != GLEW_OK)
     {
         std::cerr << "There was an error intializing glew" << std::endl;
+        glfwTerminate();
         return false;
     }
 
-    // to see the messages in debug mode
-#ifdef _DEBUG
+    // callbacks
     glDebugMessageCallback(handle_error, 0);
-#endif
+    glfwSetFramebufferSizeCallback(*window, resize_callback);
+    glfwSetKeyCallback(*window, key_callback);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
     std::cout << glGetString(GL_VENDOR) << std::endl;
