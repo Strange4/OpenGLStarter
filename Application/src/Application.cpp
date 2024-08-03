@@ -1,12 +1,15 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "pch.h"
 #include <iostream>
+#include <stb_image.h>
 
-#include "Shader.h"
-#include "Setup.h"
-#include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "Renderer.h"
+#include "Setup.h"
+#include "Shader.h"
 #include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "Texture.h"
+#include "Vertex.h"
 
 static void bounce_color(float* p_color, float* p_increment)
 {
@@ -25,12 +28,15 @@ int main(void)
     if (!setup_window(&window, "Triangle Demo", 640, 480))
         return -1;
 
-    float positions[] = {
-        -0.5f,  0.5f, // 0
-        -0.5f, -0.5f, // 1
-         0.5f, -0.5f, // 2
-         0.5f,  0.5f, // 3
+    Vertex vertices[]{
+        Vertex{-0.5f,  0.5f, 0.0f, 1.0f},
+        Vertex{-0.5f, -0.5f, 0.0f, 0.0f},
+        Vertex{ 0.5f, -0.5f, 1.0f, 0.0f},
+        Vertex{ 0.5f,  0.5f, 1.0f, 1.0f},
     };
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     unsigned short vertexIndeces[]{
         0, 1, 2, // first triangle
@@ -39,11 +45,10 @@ int main(void)
     };
 
     
-    VertexBuffer vertexBuffer(positions, 4 * 2 * sizeof(float));
+    VertexBuffer vertexBuffer(vertices, 4 * sizeof(Vertex));
     VertexBufferLayout vertexBufferLayout({
-        {
-            GL_FLOAT, 2, GL_FALSE
-        },
+        { GL_FLOAT, 2, GL_FALSE },
+        { GL_FLOAT, 2, GL_FALSE },
     });
 
 
@@ -51,20 +56,21 @@ int main(void)
     VertexArray vertexArray;
     vertexArray.addBuffer(vertexBuffer, vertexBufferLayout);
 
-
-
-    //glEnableVertexAttribArray(0);
-    // bind the index 0 of the currently bound array buffer to the currently bound vao
-    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-
     IndexBuffer indexBuffer(vertexIndeces, 6);
 
     ShaderProgram shaderProgram({
-        Shader("shaders/fragment.glsl", GL_FRAGMENT_SHADER),
-        Shader("shaders/vertex.glsl", GL_VERTEX_SHADER)
+        Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
+        Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
     });
 
     shaderProgram.bind();
+
+    const int TEXTURE_SLOT = 0;
+    Texture texture("res/textures/brazil.jpg");
+    texture.bind(TEXTURE_SLOT);
+
+    // set the uniform for the texture slot
+    shaderProgram.setUniform1i("u_texture_slot", TEXTURE_SLOT);
 
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     float g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -79,25 +85,21 @@ int main(void)
     vertexBuffer.unbind();
     indexBuffer.unbind();
 
-    glClearColor(0.6f, 0.0f, 0.0f, 1.0f);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT);
+        Renderer::clear();
 
         bounce_color(&r, &r_inc);
         bounce_color(&g, &g_inc);
         bounce_color(&b, &b_inc);
 
+        shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
-        //glUniform4f(colorLocation, r, g, b, 1.0);
 
-        indexBuffer.bind();
-        vertexArray.bind();
-
-        glDrawElements(GL_TRIANGLES, indexBuffer.getCount(), GL_UNSIGNED_SHORT, nullptr);
+        Renderer::draw(vertexArray, indexBuffer, shaderProgram);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

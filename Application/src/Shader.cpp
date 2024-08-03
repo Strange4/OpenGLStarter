@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+#include "pch.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -72,13 +72,22 @@ void ShaderProgram::unbind() const
     glUseProgram(0);
 }
 
-void ShaderProgram::setUniform4f(std::string uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+void ShaderProgram::setUniform4f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+{
+    glUniform4f(getUniformLocation(uniform_name), v0, v1, v2, v3);
+}
+
+void ShaderProgram::setUniform1i(const std::string& uniform_name, GLint value)
+{
+    glUniform1i(getUniformLocation(uniform_name), value);
+}
+
+GLint ShaderProgram::getUniformLocation(const std::string& uniform_name)
 {
     if (!this->m_locationCache.contains(uniform_name))
     {
         GLint location = glGetUniformLocation(this->m_id, uniform_name.c_str());
         this->m_locationCache.insert({ uniform_name, location });
     }
-
-    glUniform4f(this->m_locationCache.at(uniform_name), v0, v1, v2, v3);
+    return this->m_locationCache.at(uniform_name);
 }

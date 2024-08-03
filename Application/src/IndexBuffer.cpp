@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "IndexBuffer.h"
 
 IndexBuffer::IndexBuffer(const unsigned short* data, GLsizei count)

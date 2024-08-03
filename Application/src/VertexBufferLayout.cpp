@@ -1,6 +1,5 @@
+#include "pch.h"
 #include "VertexBufferLayout.h"
-
-
 
 VertexBufferLayout::VertexBufferLayout(std::vector<VertexAttribute> attributes)
     : m_attributes(attributes)

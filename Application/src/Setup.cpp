@@ -1,5 +1,4 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include "pch.h"
 
 #include <iostream>
 
@@ -150,7 +149,6 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
 
     glViewport(0, 0, width, height);
 
-
     // Make the window's context current
     glfwMakeContextCurrent(*window);
 
@@ -168,6 +166,8 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     glDebugMessageCallback(handle_error, 0);
     glfwSetFramebufferSizeCallback(*window, resize_callback);
     glfwSetKeyCallback(*window, key_callback);
+
+    glClearColor(1.0f, 0.06f, 0.94f, 1.0f);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
     std::cout << glGetString(GL_VENDOR) << std::endl;

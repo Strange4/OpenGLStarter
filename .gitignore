@@ -398,4 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Dependencies
-Dependencies/
+Dependencies/*
+!Dependencies/stb_image/

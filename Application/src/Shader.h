@@ -54,5 +54,17 @@ public:
     /// <param name="v1">second value</param>
     /// <param name="v2">third value</param>
     /// <param name="v3">fourth value</param>
-    void setUniform4f(std::string uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+    void setUniform4f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+
+    /// <summary>
+    /// Caches and binds the uniform with the given name to the specified values.
+    /// Note: The program must be bound or else OpenGL will throw an error
+    /// </summary>
+    /// <param name="uniform_name">the name of the uniform as stated in the shader</param>
+    /// <param name="value">the value of the uniform</param>
+    void setUniform1i(const std::string& uniform_name, GLint value);
+
+
+private:
+    GLint getUniformLocation(const std::string& uniform_name);
 };
