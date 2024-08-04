@@ -127,12 +127,6 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     if (!glfwInit())
         return false;
 
-    // when running in debug, set the context to debug to see the messages
-#ifdef _DEBUG
-    std::cout << "Running in debug" << std::endl;
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
-
     // setting the OpenGL version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -163,7 +157,11 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     }
 
     // callbacks
+#ifdef _DEBUG
+    std::cout << "Debug messages are enabled" << std::endl;
+    glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(handle_error, 0);
+#endif
     glfwSetFramebufferSizeCallback(*window, resize_callback);
     glfwSetKeyCallback(*window, key_callback);
 

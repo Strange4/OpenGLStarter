@@ -11,7 +11,7 @@ VertexArray::~VertexArray()
     glDeleteVertexArrays(1, &this->m_id);
 }
 
-void VertexArray::addBuffer(const VertexBuffer& vertex_buffer, const VertexBufferLayout& layout)
+void VertexArray::bindBuffer(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer, const VertexBufferLayout& layout) const
 {
     this->bind();
     vertex_buffer.bind();
@@ -26,6 +26,7 @@ void VertexArray::addBuffer(const VertexBuffer& vertex_buffer, const VertexBuffe
         glVertexAttribPointer(i, attrib.element_count, attrib.type, attrib.normalized, layout.getStride(), (const void*)offset);
         offset += attrib.element_count * get_size_of_type(attrib.type);
     }
+    index_buffer.bind();
 }
 
 void VertexArray::bind() const

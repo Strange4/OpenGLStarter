@@ -51,12 +51,12 @@ int main(void)
         { GL_FLOAT, 2, GL_FALSE },
     });
 
+    IndexBuffer indexBuffer(vertexIndeces, 6);
 
     // this contains the buffer and the layout instead of binding both
     VertexArray vertexArray;
-    vertexArray.addBuffer(vertexBuffer, vertexBufferLayout);
+    vertexArray.bindBuffer(vertexBuffer, indexBuffer, vertexBufferLayout);
 
-    IndexBuffer indexBuffer(vertexIndeces, 6);
 
     ShaderProgram shaderProgram({
         Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
@@ -80,10 +80,12 @@ int main(void)
     float g_inc = 0.01f;
     float b_inc = 0.01f;
 
+
     // unbinding everything
     vertexArray.unbind();
     vertexBuffer.unbind();
     indexBuffer.unbind();
+    shaderProgram.unbind();
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -99,7 +101,7 @@ int main(void)
         shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
 
-        Renderer::draw(vertexArray, indexBuffer, shaderProgram);
+        Renderer::draw(vertexArray, indexBuffer.getCount(), shaderProgram);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
