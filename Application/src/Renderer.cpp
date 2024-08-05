@@ -14,3 +14,13 @@ void Renderer::draw(const VertexArray& vertex_array, GLsizei triangle_count, con
 
     glDrawElements(GL_TRIANGLES, triangle_count, GL_UNSIGNED_SHORT, nullptr);
 }
+
+void Renderer::setWiremesh()
+{
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void Renderer::unsetWiremesh()
+{
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}

@@ -82,6 +82,11 @@ void ShaderProgram::setUniform1i(const std::string& uniform_name, GLint value)
     glUniform1i(getUniformLocation(uniform_name), value);
 }
 
+void ShaderProgram::setUniformMatrix4f(const std::string& uniform_name, const glm::mat4& matrix)
+{
+    glUniformMatrix4fv(getUniformLocation(uniform_name), 1, GL_FALSE, &matrix[0][0]);
+}
+
 GLint ShaderProgram::getUniformLocation(const std::string& uniform_name)
 {
     if (!this->m_locationCache.contains(uniform_name))

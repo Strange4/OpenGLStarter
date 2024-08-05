@@ -24,6 +24,9 @@ private:
 };
 
 
+#include "pch.h"
+#include <glm/glm.hpp>
+
 class ShaderProgram
 {
 private:
@@ -63,6 +66,8 @@ public:
     /// <param name="uniform_name">the name of the uniform as stated in the shader</param>
     /// <param name="value">the value of the uniform</param>
     void setUniform1i(const std::string& uniform_name, GLint value);
+
+    void setUniformMatrix4f(const std::string& uniform_name, const glm::mat4& matrix);
 
 
 private:

@@ -1,6 +1,11 @@
 #include "pch.h"
 #include <iostream>
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include "IndexBuffer.h"
 #include "Renderer.h"
@@ -57,7 +62,6 @@ int main(void)
     VertexArray vertexArray;
     vertexArray.bindBuffer(vertexBuffer, indexBuffer, vertexBufferLayout);
 
-
     ShaderProgram shaderProgram({
         Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
         Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
@@ -71,6 +75,9 @@ int main(void)
 
     // set the uniform for the texture slot
     shaderProgram.setUniform1i("u_texture_slot", TEXTURE_SLOT);
+
+    glm::vec3 translationVector(1.0f, 1.0f, 1.0f);
+
 
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     float g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -87,12 +94,47 @@ int main(void)
     indexBuffer.unbind();
     shaderProgram.unbind();
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    bool showDemoWindow = false;
+
+    ImGuiIO io = ImGui::GetIO();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         Renderer::clear();
+
+
+        // ImGui stuff
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        if(showDemoWindow)
+            ImGui::ShowDemoWindow(&showDemoWindow);
+
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        {
+            static float f = 0.0f;
+            static int counter = 0;
+
+            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
+
+            ImGui::SliderFloat3("Translation", &translationVector.x, -1.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+
+            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui::SameLine();
+            ImGui::Text("counter = %d", counter);
+
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::End();
+        }
+
+        // Rendering
+
 
         bounce_color(&r, &r_inc);
         bounce_color(&g, &g_inc);
@@ -100,8 +142,16 @@ int main(void)
 
         shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
+        glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), translationVector);
+        shaderProgram.setUniformMatrix4f("u_transform", viewMatrix);
 
         Renderer::draw(vertexArray, indexBuffer.getCount(), shaderProgram);
+        
+
+        // render imgui on top
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -110,6 +160,11 @@ int main(void)
         glfwPollEvents();
     }
 
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
