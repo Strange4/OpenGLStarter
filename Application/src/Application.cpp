@@ -3,6 +3,7 @@
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -28,9 +29,12 @@ static void bounce_color(float* p_color, float* p_increment)
 
 int main(void)
 {
-    GLFWwindow* window = nullptr;
 
-    if (!setup_window(&window, "Triangle Demo", 640, 480))
+    constexpr int WINDOW_WIDTH = 640;
+    constexpr int WINDOW_HEIGHT = (16 / 9) * WINDOW_WIDTH;
+    GLFWwindow* window = setup_window("Triangle Demo", WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    if (!window)
         return -1;
 
     Vertex vertices[]{
@@ -39,9 +43,6 @@ int main(void)
         Vertex{ 0.5f, -0.5f, 1.0f, 0.0f},
         Vertex{ 0.5f,  0.5f, 1.0f, 1.0f},
     };
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     unsigned short vertexIndeces[]{
         0, 1, 2, // first triangle
@@ -76,7 +77,13 @@ int main(void)
     // set the uniform for the texture slot
     shaderProgram.setUniform1i("u_texture_slot", TEXTURE_SLOT);
 
-    glm::vec3 translationVector(1.0f, 1.0f, 1.0f);
+    // model view projection
+    glm::vec3 modelTranslation(0.0f);
+    float modelRotation = glm::radians(-55.0f);
+
+    // tranlsate the scene in oposite direction of the view
+    glm::vec3 viewTranslation(0.0f, 0.0f, -3.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.01f, 100.0f);
 
 
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -117,24 +124,20 @@ int main(void)
             static float f = 0.0f;
             static int counter = 0;
 
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui::Begin("Matrix Settings");
             ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
 
-            ImGui::SliderFloat3("Translation", &translationVector.x, -1.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui::SliderFloat3("Model Translation", glm::value_ptr(modelTranslation), -1.0f, 1.0f);
+            ImGui::SliderFloat("Model Rotation", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
+            ImGui::SliderFloat3("View Translation", glm::value_ptr(viewTranslation), -10.0f, 10.0f);
 
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+            if (ImGui::Button("Button"))
                 counter++;
             ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
         }
-
-        // Rendering
-
 
         bounce_color(&r, &r_inc);
         bounce_color(&g, &g_inc);
@@ -142,8 +145,13 @@ int main(void)
 
         shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
-        glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), translationVector);
-        shaderProgram.setUniformMatrix4f("u_transform", viewMatrix);
+
+        // contatenating the matrices
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), modelTranslation);
+        model = glm::rotate(model, modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), viewTranslation);
+
+        shaderProgram.setUniformMatrix4f("u_transform", projection * view * model);
 
         Renderer::draw(vertexArray, indexBuffer.getCount(), shaderProgram);
         
@@ -164,7 +172,6 @@ int main(void)
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }

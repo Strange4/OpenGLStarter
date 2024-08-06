@@ -123,7 +123,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
-void set_imgui_dark_mode()
+static void set_imgui_dark_mode()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -205,11 +205,26 @@ void set_imgui_dark_mode()
     style.TabRounding = 4;
 }
 
-bool setup_window(GLFWwindow** window, const std::string& title, int width, int height)
+static void setup_imgui(GLFWwindow* window)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+
+    ImGui_ImplOpenGL3_Init("#version 430");
+
+    ImFontConfig config;
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/NotoSans-VariableFont_wdth,wght.ttf", 25.0f);
+
+    set_imgui_dark_mode();
+}
+
+GLFWwindow* setup_window(const std::string& title, int width, int height)
 {
     /* Initialize the library */
     if (!glfwInit())
-        return false;
+        return nullptr;
 
     // setting the OpenGL version
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -217,18 +232,18 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // the core profile adds more restrictions
 
     // Create a windowed mode window and its OpenGL context
-    *window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
     if (!window)
     {
         std::cerr << "There was an error while creating the window" << std::endl;
         glfwTerminate();
-        return false;
+        return nullptr;
     }
 
     glViewport(0, 0, width, height);
 
     // Make the window's context current
-    glfwMakeContextCurrent(*window);
+    glfwMakeContextCurrent(window);
 
     // swap everytime there can be a new frame and don't swap before
     glfwSwapInterval(1);
@@ -237,7 +252,7 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     {
         std::cerr << "There was an error intializing glew" << std::endl;
         glfwTerminate();
-        return false;
+        return nullptr;
     }
 
     // callbacks
@@ -246,9 +261,13 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(handle_error, 0);
 #endif
-    glfwSetFramebufferSizeCallback(*window, resize_callback);
-    glfwSetKeyCallback(*window, key_callback);
 
+
+    glfwSetFramebufferSizeCallback(window, resize_callback);
+    glfwSetKeyCallback(window, key_callback);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(1.0f, 0.06f, 0.94f, 1.0f);
 
     std::cout << glGetString(GL_VERSION) << std::endl;
@@ -256,17 +275,7 @@ bool setup_window(GLFWwindow** window, const std::string& title, int width, int 
 
 
     // ImGui stuff
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
+    setup_imgui(window);
 
-    ImGui_ImplGlfw_InitForOpenGL(*window, true);
-
-    ImGui_ImplOpenGL3_Init("#version 430");
-
-    ImFontConfig config;
-    ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/NotoSans-VariableFont_wdth,wght.ttf", 25.0f);
-
-    set_imgui_dark_mode();
-
-    return true;
+    return window;
 }
