@@ -269,6 +269,7 @@ GLFWwindow* setup_window(const std::string& title, int width, int height)
     glfwSetKeyCallback(window, key_callback);
 
     glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(1.0f, 0.06f, 0.94f, 1.0f);
 

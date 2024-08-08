@@ -5,7 +5,6 @@ class Texture
 {
 private:
     GLuint m_id;
-    unsigned char* m_localBuffer;
     int m_width, m_height, m_bitsPerPixel;
 
 public:

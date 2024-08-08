@@ -38,10 +38,10 @@ int main(void)
         return -1;
 
     std::vector<Vertex> vertices{
-        Vertex{{ -0.5f,  0.5f}, {0.0f, 1.0f}},
-        Vertex{{ -0.5f, -0.5f}, {0.0f, 0.0f}},
-        Vertex{{  0.5f, -0.5f}, {1.0f, 0.0f}},
-        Vertex{{  0.5f,  0.5f}, {1.0f, 1.0f}},
+        Vertex{{ -0.5f,  0.5f, 0.0f }, {0.0f, 1.0f}},
+        Vertex{{ -0.5f, -0.5f, 0.0f }, {0.0f, 0.0f}},
+        Vertex{{  0.5f, -0.5f, 0.0f }, {1.0f, 0.0f}},
+        Vertex{{  0.5f,  0.5f, 0.0f }, {1.0f, 1.0f}},
     };
 
     std::vector<unsigned short> vertexIndeces{
@@ -52,10 +52,7 @@ int main(void)
 
     
     VertexBuffer vertexBuffer(vertices.data(), vertices.size() * sizeof(Vertex));
-    VertexBufferLayout vertexBufferLayout({
-        { GL_FLOAT, 3, GL_FALSE },
-        { GL_FLOAT, 2, GL_FALSE },
-    });
+    VertexBufferLayout vertexBufferLayout = Vertex::getLayout();
 
     IndexBuffer indexBuffer(vertexIndeces);
 
