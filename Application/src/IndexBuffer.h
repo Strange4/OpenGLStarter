@@ -8,7 +8,7 @@ private:
     GLsizei m_count;
 
 public:
-    IndexBuffer(const std::vector<unsigned short>& data);
+    IndexBuffer(const std::vector<unsigned int>& data);
     ~IndexBuffer();
 
     void bind() const;

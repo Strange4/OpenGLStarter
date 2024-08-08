@@ -6,6 +6,7 @@ class Texture
 private:
     GLuint m_id;
     int m_width, m_height, m_bitsPerPixel;
+    std::string m_file_path;
 
 public:
     Texture(const std::string& file_path);
@@ -16,5 +17,6 @@ public:
 
     inline int getWidth() const { return this->m_width; }
     inline int getHeight() const { return this->m_height; }
+    inline std::string getFilePath() const { return this->m_file_path; }
 
 };

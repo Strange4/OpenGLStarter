@@ -4,7 +4,7 @@
 #include "Texture.h"
 
 Texture::Texture(const std::string& file_path)
-    : m_id(0), m_width(0), m_height(0), m_bitsPerPixel(0)
+    : m_id(0), m_width(0), m_height(0), m_bitsPerPixel(0), m_file_path(file_path)
 {
     // flip vertically since (0,0) is bottom left in opengl but top left on PNGs
     stbi_set_flip_vertically_on_load(true);

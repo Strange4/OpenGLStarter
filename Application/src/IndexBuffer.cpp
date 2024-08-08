@@ -2,12 +2,12 @@
 
 #include "IndexBuffer.h"
 
-IndexBuffer::IndexBuffer(const std::vector<unsigned short>& data)
+IndexBuffer::IndexBuffer(const std::vector<unsigned int>& data)
     : m_count(data.size())
 {
     glGenBuffers(1, &this->m_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_id);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size() * sizeof(unsigned short), data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size() * sizeof(unsigned int), data.data(), GL_STATIC_DRAW);
 }
 
 IndexBuffer::~IndexBuffer()
