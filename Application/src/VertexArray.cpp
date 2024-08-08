@@ -13,6 +13,12 @@ VertexArray::~VertexArray()
 
 void VertexArray::bindBuffer(const VertexBuffer& vertex_buffer, const IndexBuffer& index_buffer, const VertexBufferLayout& layout) const
 {
+    this->bindBuffer(vertex_buffer, layout);
+    index_buffer.bind();
+}
+
+void VertexArray::bindBuffer(const VertexBuffer& vertex_buffer, const VertexBufferLayout& layout) const
+{
     this->bind();
     vertex_buffer.bind();
 
@@ -26,7 +32,7 @@ void VertexArray::bindBuffer(const VertexBuffer& vertex_buffer, const IndexBuffe
         glVertexAttribPointer(i, attrib.element_count, attrib.type, attrib.normalized, layout.getStride(), (const void*)offset);
         offset += attrib.element_count * get_size_of_type(attrib.type);
     }
-    index_buffer.bind();
+
 }
 
 void VertexArray::bind() const

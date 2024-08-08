@@ -207,6 +207,8 @@ static void set_imgui_dark_mode()
 
 static void setup_imgui(GLFWwindow* window)
 {
+
+    constexpr float TEXT_SIZE = 26.0f;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -214,8 +216,8 @@ static void setup_imgui(GLFWwindow* window)
 
     ImGui_ImplOpenGL3_Init("#version 430");
 
-    ImFontConfig config;
     ImGui::GetIO().Fonts->AddFontFromFileTTF("res/fonts/NotoSans-VariableFont_wdth,wght.ttf", 25.0f);
+    ImGui::GetStyle().ScaleAllSizes(1.1f);
 
     set_imgui_dark_mode();
 }

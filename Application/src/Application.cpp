@@ -37,27 +37,27 @@ int main(void)
     if (!window)
         return -1;
 
-    Vertex vertices[]{
-        Vertex{-0.5f,  0.5f, 0.0f, 1.0f},
-        Vertex{-0.5f, -0.5f, 0.0f, 0.0f},
-        Vertex{ 0.5f, -0.5f, 1.0f, 0.0f},
-        Vertex{ 0.5f,  0.5f, 1.0f, 1.0f},
+    std::vector<Vertex> vertices{
+        Vertex{{ -0.5f,  0.5f}, {0.0f, 1.0f}},
+        Vertex{{ -0.5f, -0.5f}, {0.0f, 0.0f}},
+        Vertex{{  0.5f, -0.5f}, {1.0f, 0.0f}},
+        Vertex{{  0.5f,  0.5f}, {1.0f, 1.0f}},
     };
 
-    unsigned short vertexIndeces[]{
+    std::vector<unsigned short> vertexIndeces{
         0, 1, 2, // first triangle
 
         2, 3, 0, // second triangle
     };
 
     
-    VertexBuffer vertexBuffer(vertices, 4 * sizeof(Vertex));
+    VertexBuffer vertexBuffer(vertices.data(), vertices.size() * sizeof(Vertex));
     VertexBufferLayout vertexBufferLayout({
-        { GL_FLOAT, 2, GL_FALSE },
+        { GL_FLOAT, 3, GL_FALSE },
         { GL_FLOAT, 2, GL_FALSE },
     });
 
-    IndexBuffer indexBuffer(vertexIndeces, 6);
+    IndexBuffer indexBuffer(vertexIndeces);
 
     // this contains the buffer and the layout instead of binding both
     VertexArray vertexArray;
@@ -78,8 +78,11 @@ int main(void)
     shaderProgram.setUniform1i("u_texture_slot", TEXTURE_SLOT);
 
     // model view projection
-    glm::vec3 modelTranslation(0.0f);
-    float modelRotation = glm::radians(-55.0f);
+    glm::vec3 modelTranslation1(0.0f);
+    float modelRotation1 = glm::radians(-55.0f);
+
+    glm::vec3 modelTranslation2(-1.0f);
+    float modelRotation2 = glm::radians(55.0f);
 
     // tranlsate the scene in oposite direction of the view
     glm::vec3 viewTranslation(0.0f, 0.0f, -3.0f);
@@ -103,8 +106,6 @@ int main(void)
 
     bool showDemoWindow = false;
 
-    ImGuiIO io = ImGui::GetIO();
-
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
@@ -127,15 +128,19 @@ int main(void)
             ImGui::Begin("Matrix Settings");
             ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
 
-            ImGui::SliderFloat3("Model Translation", glm::value_ptr(modelTranslation), -1.0f, 1.0f);
-            ImGui::SliderFloat("Model Rotation", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
             ImGui::SliderFloat3("View Translation", glm::value_ptr(viewTranslation), -10.0f, 10.0f);
+
+            ImGui::SliderFloat3("Model Translation 1", glm::value_ptr(modelTranslation1), -1.0f, 1.0f);
+            ImGui::SliderFloat("Model Rotation 1", &modelRotation1, -glm::two_pi<float>(), glm::two_pi<float>());
+                
+            ImGui::SliderFloat3("Model Translation 2", glm::value_ptr(modelTranslation2), -1.0f, 1.0f);
+            ImGui::SliderFloat("Model Rotation 2", &modelRotation2, -glm::two_pi<float>(), glm::two_pi<float>());
 
             if (ImGui::Button("Button"))
                 counter++;
             ImGui::SameLine();
 
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::End();
         }
 
@@ -146,13 +151,20 @@ int main(void)
         shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
 
-        // contatenating the matrices
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), modelTranslation);
-        model = glm::rotate(model, modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+
         glm::mat4 view = glm::translate(glm::mat4(1.0f), viewTranslation);
 
-        shaderProgram.setUniformMatrix4f("u_transform", projection * view * model);
+        // contatenating the matrices
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), modelTranslation1);
+        model = glm::rotate(model, modelRotation1, glm::vec3(1.0f, 0.0f, 0.0f));
 
+        shaderProgram.setUniformMatrix4f("u_transform", projection * view * model);
+        Renderer::draw(vertexArray, indexBuffer.getCount(), shaderProgram);
+
+        model = glm::translate(glm::mat4(1.0f), modelTranslation2);
+        model = glm::rotate(model, modelRotation2, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        shaderProgram.setUniformMatrix4f("u_transform", projection * view * model);
         Renderer::draw(vertexArray, indexBuffer.getCount(), shaderProgram);
         
 
