@@ -12,5 +12,5 @@ uniform sampler2D u_texture0;
 
 void main()
 {
-    color = u_color;
+    color = mix(u_color, texture(u_texture0, v_tex_coord), 0.5);
 }

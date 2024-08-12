@@ -25,6 +25,8 @@ void VertexArray::bindBuffer(const VertexBuffer& vertex_buffer, const IndexBuffe
     {
         const VertexAttribute& attrib = elements[i];
         glEnableVertexAttribArray(i);
+
+        // compiler warning but I don't know how to handle it
         glVertexAttribPointer(i, attrib.element_count, attrib.type, attrib.normalized, layout.getStride(), (const void*)offset);
         offset += attrib.element_count * get_size_of_type(attrib.type);
     }

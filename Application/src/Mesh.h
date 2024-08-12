@@ -18,8 +18,6 @@ public:
     void draw(ShaderProgram& shader_program) const;
 
 private:
-    std::vector<Vertex> m_vertices;
-    std::vector<unsigned int> m_indices;
     std::vector<Texture> m_textures;
 
     VertexBuffer m_vertex_buffer;

@@ -4,7 +4,7 @@
 #include "Renderer.h"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
-    : m_vertex_buffer(VertexBuffer(vertices.data(), vertices.size() * sizeof(Vertex))), m_index_buffer(indices), m_vertex_array(VertexArray())
+    : m_vertex_buffer(VertexBuffer(vertices.data(), vertices.size() * (unsigned int) sizeof(Vertex))), m_index_buffer(indices), m_vertex_array(VertexArray())
 {
     this->m_vertex_array.bindBuffer(this->m_vertex_buffer, this->m_index_buffer, Vertex::getLayout());
 }

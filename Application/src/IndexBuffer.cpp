@@ -3,7 +3,7 @@
 #include "IndexBuffer.h"
 
 IndexBuffer::IndexBuffer(const std::vector<unsigned int>& data)
-    : m_count(data.size())
+    : m_count((GLsizei) data.size())
 {
     glGenBuffers(1, &this->m_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_id);

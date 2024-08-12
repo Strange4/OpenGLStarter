@@ -4,20 +4,27 @@
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Model.h"
 
 Model::Model(std::string directory_path)
+	: m_transform(glm::mat4(1.0f))
 {
 	this->loadModel(directory_path);
 }
 
 void Model::draw(ShaderProgram& shader_program) const
 {
-	for (const std::unique_ptr<Mesh>& mesh : this->m_meshes)
+	for (auto& mesh : this->m_meshes)
 	{
-		mesh.get()->draw(shader_program);
+	    mesh.get()->draw(shader_program);
 	}
+}
+
+void Model::setTransform(glm::mat4 transform)
+{
+	this->m_transform = transform;
 }
 
 void Model::loadModel(std::string directory_path)
@@ -40,7 +47,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		this->m_meshes.push_back(std::move(processMesh(mesh, scene)));
+		this->m_meshes.emplace_back(processMesh(mesh, scene));
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -84,13 +91,19 @@ std::unique_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		aiFace face = mesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			indices.push_back(face.mIndices[j]);
+		{
+			unsigned int index = face.mIndices[j];
+			indices.push_back(index);
+		}
 	}
 
 	if (mesh->mMaterialIndex >= 0)
 	{
+		// TODO: handle if it's a material color and not a texture
+		// -> https://assimp-docs.readthedocs.io/en/v5.3.0/usage/use_the_lib.html#material-system
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
+		aiString material_name = material->GetName();
 		textures = this->loadMaterialTextures(material, aiTextureType_DIFFUSE);
 	}
 
@@ -104,7 +117,7 @@ std::optional<unsigned int> Model::getLoadedTextureIndex(const std::string& file
 		if (this->m_loaded_textures[i].getFilePath() == file_path)
 			return i;
 	}
-	std::nullopt;
+	return std::nullopt;
 }
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* material, aiTextureType type)
@@ -117,12 +130,12 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* material, aiTexture
 		std::optional<unsigned int> loaded_texture = this->getLoadedTextureIndex(path.C_Str());
 		if (loaded_texture.has_value())
 		{
-			textures.push_back(this->m_loaded_textures[loaded_texture.value()]);
+			textures.emplace_back(this->m_loaded_textures[loaded_texture.value()]);
 		}
 		else {
 			Texture texture(path.C_Str());
-			textures.push_back(texture);
-			this->m_loaded_textures.push_back(texture);
+			textures.emplace_back(texture);
+			this->m_loaded_textures.emplace_back(texture);
 		}
 	}
 	return textures;

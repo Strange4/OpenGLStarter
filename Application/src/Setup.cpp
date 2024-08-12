@@ -108,21 +108,6 @@ static void resize_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (action != GLFW_PRESS)
-        return;
-
-    switch (key)
-    {
-    case GLFW_KEY_ESCAPE: 
-        glfwWindowShouldClose(window);
-        break;
-    default:
-        break;
-    }
-}
-
 static void set_imgui_dark_mode()
 {
     ImVec4* colors = ImGui::GetStyle().Colors;
@@ -220,6 +205,21 @@ static void setup_imgui(GLFWwindow* window)
     ImGui::GetStyle().ScaleAllSizes(1.1f);
 
     set_imgui_dark_mode();
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+
+    switch (key)
+    {
+    case GLFW_KEY_ESCAPE:
+        glfwWindowShouldClose(window);
+        break;
+    default:
+        break;
+    }
 }
 
 GLFWwindow* setup_window(const std::string& title, int width, int height)

@@ -17,6 +17,7 @@
 #include "Texture.h"
 #include "Vertex.h"
 #include "Model.h"
+#include "Camera.h"
 
 static void bounce_color(float* p_color, float* p_increment)
 {
@@ -38,7 +39,7 @@ int main(void)
     if (!window)
         return -1;
 
-    Model myModel("res/models/mipan.obj");
+    std::shared_ptr<Model> myModel = std::make_shared<Model>("res/models/cube.obj");
 
     ShaderProgram shaderProgram({
         Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
@@ -47,15 +48,14 @@ int main(void)
 
     shaderProgram.bind();
 
+    // application stuff
+    Renderer renderer(WINDOW_WIDTH, WINDOW_HEIGHT);
+    renderer.addModel(myModel);
+    Camera camera;
+
     // model view projection
     glm::vec3 modelTranslation(0.0f);
     float modelRotation = glm::radians(-55.0f);
-
-    // tranlsate the scene in oposite direction of the view
-    glm::vec3 viewTranslation(0.0f, 0.0f, -3.0f);
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) WINDOW_WIDTH / (float) WINDOW_HEIGHT, 0.01f, 100.0f);
-
-    shaderProgram.setUniformMatrix4f("u_projection", projection);
 
     float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
     float g = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -67,11 +67,17 @@ int main(void)
 
     bool showDemoWindow = false;
 
+    double previousTime = glfwGetTime();
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         Renderer::clear();
 
+        double newTime = glfwGetTime();
+        // handle inputs
+        camera.handle_keys(window, renderer, (float) (newTime - previousTime));
+        previousTime = newTime;
 
         // ImGui stuff
         ImGui_ImplOpenGL3_NewFrame();
@@ -89,10 +95,8 @@ int main(void)
             ImGui::Begin("Matrix Settings");
             ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
 
-            ImGui::SliderFloat3("View Translation", glm::value_ptr(viewTranslation), -20.0f, 20.0f);
-
-            ImGui::SliderFloat3("Model Translation 1", glm::value_ptr(modelTranslation), -10.0f, 10.0f);
-            ImGui::SliderFloat("Model Rotation 1", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
+            ImGui::SliderFloat3("Model Translation", glm::value_ptr(modelTranslation), -10.0f, 10.0f);
+            ImGui::SliderFloat("Model Rotation", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
 
             if (ImGui::Button("Button"))
                 counter++;
@@ -109,16 +113,12 @@ int main(void)
         shaderProgram.bind();
         shaderProgram.setUniform4f("u_color", r, g, b, 1.0f);
 
-
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), viewTranslation);
-        shaderProgram.setUniformMatrix4f("u_view", view);
-
         // contatenating the matrices
         glm::mat4 model = glm::translate(glm::mat4(1.0f), modelTranslation);
-        model = glm::rotate(model, modelRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, modelRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+        myModel.get()->setTransform(model);
 
-        shaderProgram.setUniformMatrix4f("u_model", model);
-        myModel.draw(shaderProgram);
+        renderer.drawModels(shaderProgram);
         
         // render imgui on top
         ImGui::Render();
