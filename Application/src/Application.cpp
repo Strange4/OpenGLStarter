@@ -32,7 +32,7 @@ static void bounce_color(float* p_color, float* p_increment)
 int main(void)
 {
 
-    constexpr int WINDOW_WIDTH = 640;
+    constexpr int WINDOW_WIDTH = 940;
     constexpr int WINDOW_HEIGHT = (16 / 9) * WINDOW_WIDTH;
     GLFWwindow* window = setup_window("Triangle Demo", WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -65,18 +65,17 @@ int main(void)
     float g_inc = 0.01f;
     float b_inc = 0.01f;
 
-    bool showDemoWindow = false;
-
     double previousTime = glfwGetTime();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         Renderer::clear();
+        renderer.tryResize(window);
 
-        double newTime = glfwGetTime();
         // handle inputs
-        camera.handle_keys(window, renderer, (float) (newTime - previousTime));
+        double newTime = glfwGetTime();
+        camera.handle_input(window, renderer, (float) (newTime - previousTime));
         previousTime = newTime;
 
         // ImGui stuff
@@ -84,27 +83,14 @@ int main(void)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        if(showDemoWindow)
-            ImGui::ShowDemoWindow(&showDemoWindow);
+        ImGui::Begin("Matrix Settings");
 
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        ImGui::SliderFloat3("Model Translation", glm::value_ptr(modelTranslation), -10.0f, 10.0f);
+        ImGui::SliderFloat("Model Rotation", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
 
-            ImGui::Begin("Matrix Settings");
-            ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
-
-            ImGui::SliderFloat3("Model Translation", glm::value_ptr(modelTranslation), -10.0f, 10.0f);
-            ImGui::SliderFloat("Model Rotation", &modelRotation, -glm::two_pi<float>(), glm::two_pi<float>());
-
-            if (ImGui::Button("Button"))
-                counter++;
-            ImGui::SameLine();
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::End();
+        
 
         bounce_color(&r, &r_inc);
         bounce_color(&g, &g_inc);

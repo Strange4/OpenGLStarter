@@ -2,10 +2,10 @@
 #include "Renderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-Renderer::Renderer(unsigned int window_with, unsigned int window_height)
-    : m_view(glm::mat4(1.0f))
+Renderer::Renderer(int window_width, int window_height)
+    : m_view(glm::mat4(1.0f)), m_width(window_width), m_height(window_height)
 {
-    this->m_projection = glm::perspective(glm::radians(45.0f), (float)window_with / (float)window_height, 0.01f, 100.0f);
+    this->m_projection = glm::perspective(glm::radians(45.0f), (float)window_width / (float)window_height, 0.01f, 100.0f);
 }
 
 void Renderer::drawModels(ShaderProgram& shader_program) const
@@ -46,8 +46,15 @@ void Renderer::setViewTransform(glm::mat4 view)
     this->m_view = view;
 }
 
-void Renderer::resize(unsigned int window_width, unsigned int window_height)
+void Renderer::tryResize(GLFWwindow* window)
 {
+    int window_width = 0;
+    int window_height = 0;
+    glfwGetWindowSize(window, &window_width, &window_height);
+
+    // don't resize if they are equal
+    if (window_width == this->m_width && window_height == this->m_height)
+        return;
     this->m_projection = glm::perspective(glm::radians(45.0f), (float)window_width / (float)window_height, 0.01f, 100.0f);
 }
 
