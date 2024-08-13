@@ -13,12 +13,6 @@ Camera::Camera()
 {
 }
 
-void Camera::handle_input(GLFWwindow* window, Renderer& renderer, float delta_time)
-{
-    this->handle_keys(window, renderer, delta_time);
-    this->handle_mouse(window, renderer);
-}
-
 void Camera::handle_keys(GLFWwindow* window, Renderer& renderer, float delta_time)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -33,31 +27,27 @@ void Camera::handle_keys(GLFWwindow* window, Renderer& renderer, float delta_tim
         this->m_position += delta_time * this->m_camera_speed * this->CAMERA_UP;
     if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
         this->m_position -= delta_time * this->m_camera_speed * this->CAMERA_UP;
-    
 
     renderer.setViewTransform(glm::lookAt(this->m_position, this->m_position + this->m_front, this->CAMERA_UP));
 }
 
-void Camera::handle_mouse(GLFWwindow* window, Renderer& renderer)
+void Camera::handle_mouse_move(GLFWwindow* window, Renderer& renderer, float x_pos, float y_pos)
 {
-    double xpos = 0;
-    double ypos = 0;
-    glfwGetCursorPos(window, &xpos, &ypos);
     // the first time, set the last position and return
     if (this->m_last_mouse_x == 0.0f || this->m_last_mouse_y == 0.0f)
     {
-        this->m_last_mouse_x = xpos;
-        this->m_last_mouse_y = ypos;
+        this->m_last_mouse_x = x_pos;
+        this->m_last_mouse_y = y_pos;
         return;
     }
 
-    float xOffset = (xpos - this->m_last_mouse_x) * this->m_mouse_sensitivity;
-    float yOffset = (this->m_last_mouse_y - ypos) * this->m_mouse_sensitivity;
+    float xOffset = (x_pos - this->m_last_mouse_x) * this->m_mouse_sensitivity;
+    float yOffset = (this->m_last_mouse_y - y_pos) * this->m_mouse_sensitivity;
 
-    this->m_last_mouse_x = xpos;
-    this->m_last_mouse_y = ypos;
+    this->m_last_mouse_x = x_pos;
+    this->m_last_mouse_y = y_pos;
 
-    this->m_pitch = std::max(std::min(this->m_pitch+ yOffset, 89.0f), -89.0f);
+    this->m_pitch = std::max(std::min(this->m_pitch + yOffset, 89.0f), -89.0f);
     this->m_yaw += xOffset;
 
     glm::vec3 direction(0.0f);

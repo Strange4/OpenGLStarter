@@ -8,7 +8,8 @@ class Camera
 public:
     Camera();
 
-    void handle_input(GLFWwindow* window, Renderer& renderer, float delta_time);
+    void handle_keys(GLFWwindow* window, Renderer& renderer, float delta_time);
+    void handle_mouse_move(GLFWwindow* window, Renderer& renderer, float x_pos, float y_pos);
 private:
     static constexpr glm::vec3 CAMERA_UP = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -18,9 +19,4 @@ private:
     float m_mouse_sensitivity;
     float m_last_mouse_x, m_last_mouse_y;
     float m_pitch, m_yaw;
-    
-
-
-    void handle_keys(GLFWwindow* window, Renderer& renderer, float delta_time);
-    void handle_mouse(GLFWwindow* window, Renderer& renderer);
 };

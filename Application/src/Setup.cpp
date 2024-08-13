@@ -1,9 +1,14 @@
 #include "pch.h"
 
+#include <iostream>
+
+#include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <iostream>
+
+#include "Setup.h"
+#include "Application.h"
 
 static void handle_error(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* param)
 {
@@ -103,9 +108,51 @@ static void handle_error(GLenum source, GLenum type, GLuint id, GLenum severity,
     __debugbreak(); // MSVC compiler intrisic but it's okay since we're all using it
 }
 
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (action != GLFW_PRESS)
+        return;
+
+    Application& app = Application::getInstance();
+    switch (key)
+    {
+    case GLFW_KEY_ESCAPE:
+        glfwSetWindowShouldClose(window, true);
+        break;
+    case GLFW_KEY_1:
+        app.setEditingState();
+        break;
+    case GLFW_KEY_2:
+        app.setMovingState();
+        break;
+    default:
+        break;
+    }
+}
+
 static void resize_callback(GLFWwindow* window, int width, int height)
 {
+    Application& app = Application::getInstance();
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.01f, 100.0f);
+    app.getRenderer().setProjectionTransform(projection);
     glViewport(0, 0, width, height);
+}
+
+static void cursor_pos_callback(GLFWwindow* window, double x_pos, double y_pos)
+{
+    Application& app = Application::getInstance();
+    if (app.getState() != ApplicationState::Moving)
+        return;
+    Camera& cam = app.getCamera();
+    Renderer& renderer = app.getRenderer();
+    cam.handle_mouse_move(window, renderer, (float)x_pos, (float)y_pos);
+}
+
+static void setup_callbacks(GLFWwindow* window)
+{
+    glfwSetFramebufferSizeCallback(window, resize_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, cursor_pos_callback);
 }
 
 static void set_imgui_dark_mode()
@@ -207,20 +254,7 @@ static void setup_imgui(GLFWwindow* window)
     set_imgui_dark_mode();
 }
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (action != GLFW_PRESS)
-        return;
 
-    switch (key)
-    {
-    case GLFW_KEY_ESCAPE:
-        glfwSetWindowShouldClose(window, true);
-        break;
-    default:
-        break;
-    }
-}
 
 GLFWwindow* setup_window(const std::string& title, int width, int height)
 {
@@ -264,18 +298,13 @@ GLFWwindow* setup_window(const std::string& title, int width, int height)
     glDebugMessageCallback(handle_error, 0);
 #endif
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetFramebufferSizeCallback(window, resize_callback);
-    glfwSetKeyCallback(window, key_callback);
 
     glEnable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    std::cout << glGetString(GL_VERSION) << std::endl;
-    std::cout << glGetString(GL_VENDOR) << std::endl;
-
-
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    setup_callbacks(window);
     // ImGui stuff
     setup_imgui(window);
 

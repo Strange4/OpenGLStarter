@@ -67,21 +67,28 @@ std::unique_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		aiVector3D position = mesh->mVertices[i];
-		aiVector3D normal = mesh->mNormals[i];
-		glm::vec2 tex_coordinates(0.0f);
+		glm::vec2 texCoordinates(0.0f);
+		glm::vec3 normal(0.0f);
+		if (mesh->HasNormals())
+		{
+			aiVector3D importedNormal = mesh->mNormals[i];
+			normal.x = importedNormal.x;
+			normal.y = importedNormal.y;
+			normal.z = importedNormal.z;
+		}
 
 		// we only allow 1 texture coodinate
 		if (mesh->mTextureCoords[0])
 		{
-			tex_coordinates.x = mesh->mTextureCoords[0][i].x;
-			tex_coordinates.y = mesh->mTextureCoords[0][i].y;
+			texCoordinates.x = mesh->mTextureCoords[0][i].x;
+			texCoordinates.y = mesh->mTextureCoords[0][i].y;
 		}
 
 		vertices.push_back(
 			Vertex{
 				glm::vec3{position.x, position.y, position.z}, // position
 				glm::vec3{normal.x, normal.y, normal.z}, // normal
-				tex_coordinates, // texture coordinates
+				texCoordinates, // texture coordinates
 			}
 		);
 	}

@@ -13,10 +13,9 @@ public:
 
     void drawModels(ShaderProgram& shader_program) const;
     void setViewTransform(glm::mat4 transformation);
-    void tryResize(GLFWwindow* window);
+    void setProjectionTransform(glm::mat4 transformation);
     void addModel(std::shared_ptr<Model> model);
-
-    glm::mat4 getProjection() const { return this->m_projection; }
+    void removeModel(std::shared_ptr<Model> model);
 
     static void clear();
     static void draw(const VertexArray& vertex_array, GLsizei triangle_count, const ShaderProgram& shader_program);
