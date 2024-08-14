@@ -3,6 +3,7 @@
 #include "pch.h"
 
 #include <memory>
+#include <ImGuiFileDialog.h>
 
 #include "Model.h"
 #include "Camera.h"
@@ -56,9 +57,7 @@ private:
     Camera m_camera;
 
     // settings
-    glm::vec3 m_model_translation;
+    float m_model_scale;
     float m_model_rotation;
-
-
-
+    ImGuiFileDialog m_file_dialog;
 };

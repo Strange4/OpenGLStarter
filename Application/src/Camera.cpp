@@ -56,3 +56,9 @@ void Camera::handle_mouse_move(GLFWwindow* window, Renderer& renderer, float x_p
     direction.z = sin(glm::radians(this->m_yaw)) * cos(glm::radians(this->m_pitch));
     this->m_front = glm::normalize(direction);
 }
+
+void Camera::setMousePosition(glm::vec2 position)
+{
+    this->m_last_mouse_x = position.x;
+    this->m_last_mouse_y = position.y;
+}

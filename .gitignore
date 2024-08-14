@@ -400,7 +400,8 @@ FodyWeavers.xsd
 # Dependencies
 Dependencies/*
 !Dependencies/stb_image/
-!Dependencies/imgui-1.91.0
+!Dependencies/imgui-1.91.0/
+!Dependencies/ImGuiFileDialog/
 
 # ImGui
 Application/imgui.ini

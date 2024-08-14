@@ -23,8 +23,9 @@ Application::Application()
         Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
         })),
     m_renderer(Renderer((int) this->START_WINDOW_WIDTH, (int) this->START_WINDOW_HEIGHT)),
-    m_model_translation(0.0f), m_model_rotation(0.0f)
+    m_model_scale(1.0f), m_model_rotation(0.0f), m_state(ApplicationState::Moving)
 {
+    
 }
 
 void Application::mainLoop()
@@ -47,17 +48,24 @@ void Application::mainLoop()
         previousTime = newTime;
 
         this->m_shader_program.bind();
-        this->m_shader_program.setUniform4f("u_color", sin(previousTime), cos(previousTime), tan(previousTime), 1.0f);
+        this->m_shader_program.setUniform4f("u_color", sin(previousTime), cos(previousTime), 1.0f, 1.0f);
 
         // contatenating the matrices
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), this->m_model_translation);
-        model = glm::rotate(model, this->m_model_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 model = glm::rotate(glm::mat4(1.0f), this->m_model_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(this->m_model_scale));
         this->m_current_model.get()->setTransform(model);
 
         this->m_renderer.drawModels(this->m_shader_program);
 
         this->renderGui();
 
+        // change model if it was changed
+        if (this->m_file_dialog.IsOk())
+        {
+            std::string filePath = this->m_file_dialog.GetFilePathName();
+            std::shared_ptr<Model> newModel = std::make_shared<Model>(filePath);
+            this->setModel(newModel);
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(this->m_window);
@@ -88,13 +96,16 @@ void Application::setWindow(GLFWwindow* window)
 void Application::setMovingState()
 {
     this->m_state = ApplicationState::Moving;
+    glfwSetCursorPos(this->m_window, 1.0, 1.0);
+    this->getCamera().setMousePosition(glm::vec2(1.0f));
     glfwSetInputMode(this->m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 }
 
 void Application::setEditingState()
 {
-    glfwSetInputMode(this->m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     this->m_state = ApplicationState::Editing;
+    glfwSetInputMode(this->m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
 void Application::renderGui()
@@ -113,11 +124,20 @@ void Application::renderGui()
 
 void Application::setGui()
 {
+    // only render if it's open
     if (ImGui::Begin("Matrix Settings"))
     {
-        ImGui::SliderFloat3("Model Translation", glm::value_ptr(this->m_model_translation), -10.0f, 10.0f);
+        ImGui::SliderFloat("Model Scale", &this->m_model_scale, 0.0f, 10.0f);
         ImGui::SliderFloat("Model Rotation", &this->m_model_rotation, -glm::two_pi<float>(), glm::two_pi<float>());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        if (ImGui::CollapsingHeader("File Model Selection"))
+        {
+            IGFD::FileDialogConfig config;
+            config.path = "./res/models/";
+            config.flags = ImGuiFileDialogFlags_NoDialog | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+            this->m_file_dialog.OpenDialog("bool", "Select this thoasdjf;aldfasdf", ".obj", config);
+            this->m_file_dialog.Display("bool", ImGuiWindowFlags_None);
+        }
     }
     
     switch (this->m_state)
