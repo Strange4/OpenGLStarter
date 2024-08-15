@@ -101,10 +101,8 @@ static void handle_error(GLenum source, GLenum type, GLuint id, GLenum severity,
         _severity = "UNKNOWN";
         break;
     }
-
-    std::cout << "there was an error" << std::endl;
-
     fprintf(stderr, "CODE %d: %s of %s severity, raised from %s.\nMessage: %s\n", id, _type, _severity, _source, message);
+
     __debugbreak(); // MSVC compiler intrisic but it's okay since we're all using it
 }
 
@@ -267,8 +265,9 @@ GLFWwindow* setup_window(const std::string& title, int width, int height)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // the core profile adds more restrictions
 
-    // Create a windowed mode window and its OpenGL context
-    GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
+    // Create a windowed window and its OpenGL context
+
+    GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!window)
     {
         std::cerr << "There was an error while creating the window" << std::endl;
@@ -276,10 +275,11 @@ GLFWwindow* setup_window(const std::string& title, int width, int height)
         return nullptr;
     }
 
-    glViewport(0, 0, width, height);
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
+
+    glfwSetWindowPos(window, 100, 100);
 
     // swap everytime there can be a new frame and don't swap before
     glfwSwapInterval(1);
@@ -291,20 +291,22 @@ GLFWwindow* setup_window(const std::string& title, int width, int height)
         return nullptr;
     }
 
-    // callbacks
 #ifdef _DEBUG
     std::cout << "Debug messages are enabled" << std::endl;
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(handle_error, 0);
 #endif
 
-
+    // opengl setup
+    glViewport(0, 0, width, height);
     glEnable(GL_BLEND);
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    // callbacks
     setup_callbacks(window);
+
     // ImGui stuff
     setup_imgui(window);
 

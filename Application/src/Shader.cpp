@@ -2,12 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
+#include <algorithm>
 
 #include "Shader.h"
 
 Shader::Shader(const std::string& file_path, GLenum shader_type)
-    : m_id(0)
+    : m_id(0), m_type(shader_type), m_path(file_path)
 {
     const std::string source = Shader::readFromFile(file_path);
 
@@ -19,16 +19,6 @@ Shader::Shader(const std::string& file_path, GLenum shader_type)
     this->m_id = id;
 }
 
-Shader::~Shader()
-{
-    glDeleteShader(this->m_id);
-}
-
-GLuint Shader::getId() const
-{
-    return this->m_id;
-}
-
 std::string Shader::readFromFile(const std::string& file_path)
 {
     std::ifstream file(file_path);
@@ -37,9 +27,24 @@ std::string Shader::readFromFile(const std::string& file_path)
     return buffer.str();
 }
 
-ShaderProgram::ShaderProgram(const std::vector<Shader> shaders)
+ShaderProgram::ShaderProgram()
     : m_id(0)
 {
+    GLuint program = glCreateProgram();
+
+    if (program == 0)
+    {
+        std::cerr << "Failed to create the program!" << std::endl;
+        return;
+    }
+
+    this->m_id = program;
+}
+
+ShaderProgram::ShaderProgram(const std::vector<Shader>& shaders)
+    : m_id(0), m_shaders(shaders)
+{
+
     GLuint program = glCreateProgram();
 
     if (program == 0)
@@ -51,10 +56,8 @@ ShaderProgram::ShaderProgram(const std::vector<Shader> shaders)
     for (const Shader& shader : shaders)
         glAttachShader(program, shader.getId());
 
-    glValidateProgram(program);
-    glLinkProgram(program);
-
     this->m_id = program;
+    this->link();
 }
 
 ShaderProgram::~ShaderProgram()
@@ -62,9 +65,45 @@ ShaderProgram::~ShaderProgram()
     glDeleteProgram(this->m_id);
 }
 
+std::vector<Shader> ShaderProgram::getShaders()
+{
+    return this->m_shaders;
+}
+
+void ShaderProgram::deleteShaderType(GLenum type)
+{
+    // find the shader by type
+    auto iterator = std::find_if(this->m_shaders.begin(), this->m_shaders.end(), [&](const Shader& shader)
+        { return shader.getType() == type; });
+
+    if (iterator == this->m_shaders.end())
+        return;
+    glDetachShader(this->m_id, iterator->getId());
+    glDeleteShader(iterator->getId());
+    this->m_shaders.erase(iterator);
+}
+
+void ShaderProgram::attachShader(Shader shader)
+{
+    glAttachShader(this->m_id, shader.getId());
+    this->m_shaders.push_back(shader);
+}
+
+void ShaderProgram::attachAllShaders(const std::vector<Shader>& shaders)
+{
+    for (const Shader& shader : shaders)
+        this->attachShader(shader);
+}
+
+void ShaderProgram::link() const
+{
+    glValidateProgram(this->m_id);
+    glLinkProgram(this->m_id);
+}
+
 void ShaderProgram::bind() const
 {
-    glUseProgram(this->m_id);
+     glUseProgram(this->m_id);
 }
 
 void ShaderProgram::unbind() const

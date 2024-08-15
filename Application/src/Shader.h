@@ -1,18 +1,21 @@
 #pragma once
-#include <string>
-#include <vector>
+
+#include "pch.h"
 #include <unordered_map>
+
+#include <glm/glm.hpp>
 
 class Shader
 {
 private:
     GLuint m_id;
-
+    GLenum m_type;
+    std::string m_path;
 public:
     Shader(const std::string& file_path, GLenum shader_type);
-    ~Shader();
 
-    GLuint getId() const;
+    GLuint getId() const { return this->m_id; };
+    GLenum getType() const { return this->m_type; }
 
 private:
     /// <summary>
@@ -24,8 +27,6 @@ private:
 };
 
 
-#include "pch.h"
-#include <glm/glm.hpp>
 
 class ShaderProgram
 {
@@ -35,8 +36,20 @@ private:
     std::unordered_map<std::string, GLuint> m_locationCache;
 
 public:
-    ShaderProgram(const std::vector<Shader> shaders);
+    ShaderProgram(const std::vector<Shader>& shaders);
+    ShaderProgram();
     ~ShaderProgram();
+
+    GLuint getId() const { return this->m_id; }
+
+    std::vector<Shader> getShaders();
+
+    void deleteShaderType(GLenum type);
+
+    void attachShader(Shader shader);
+
+    void attachAllShaders(const std::vector<Shader>& shaders);
+    void link() const;
 
     /// <summary>
     /// binds this shader program to the opengl context
@@ -68,7 +81,6 @@ public:
     void setUniform1i(const std::string& uniform_name, GLint value);
 
     void setUniformMatrix4f(const std::string& uniform_name, const glm::mat4& matrix);
-
 
 private:
     GLint getUniformLocation(const std::string& uniform_name);

@@ -5,6 +5,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Model.h"
 
@@ -24,7 +25,7 @@ void Model::draw(ShaderProgram& shader_program) const
 
 void Model::setTransform(glm::mat4 transform)
 {
-	this->m_transform = transform;
+	this->m_transform *= transform;
 }
 
 void Model::loadModel(std::string directory_path)
@@ -33,12 +34,14 @@ void Model::loadModel(std::string directory_path)
 
 	const aiScene* scene = importer.ReadFile(directory_path, aiProcess_Triangulate
 		| aiProcess_FlipUVs | aiProcess_OptimizeMeshes);
-
 	if (!scene || scene->mFlags * AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
 		return;
 	}
+	aiMatrix4x4 rootTransform = scene->mRootNode->mTransformation;
+	
+	this->m_transform *= glm::make_mat4(&rootTransform.a1);
 	this->processNode(scene->mRootNode, scene);
 }
 
@@ -47,7 +50,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		this->m_meshes.emplace_back(processMesh(mesh, scene));
+		this->m_meshes.push_back(processMesh(mesh, scene));
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -61,6 +64,25 @@ std::unique_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
+
+	// default color if there are none
+	glm::vec3 color(1.0f, 0.34f, 0.2f);
+
+	// process materials
+	if (mesh->mMaterialIndex >= 0)
+	{
+		// TODO: handle if it's a material color and not a texture
+		// -> https://assimp-docs.readthedocs.io/en/v5.3.0/usage/use_the_lib.html#material-system
+		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+		aiString materialName = material->GetName();
+		aiColor3D retrievedColor;
+		if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, retrievedColor)) {
+			color = glm::vec3(retrievedColor.r, retrievedColor.g, retrievedColor.b);
+		}
+
+		textures = this->loadMaterialTextures(material, aiTextureType_DIFFUSE);
+	}
 	
 
 	// process vertices
@@ -87,7 +109,8 @@ std::unique_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		vertices.push_back(
 			Vertex{
 				glm::vec3{position.x, position.y, position.z}, // position
-				glm::vec3{normal.x, normal.y, normal.z}, // normal
+				normal, // normal
+				color, // color
 				texCoordinates, // texture coordinates
 			}
 		);
@@ -104,15 +127,6 @@ std::unique_ptr<Mesh> Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		}
 	}
 
-	if (mesh->mMaterialIndex >= 0)
-	{
-		// TODO: handle if it's a material color and not a texture
-		// -> https://assimp-docs.readthedocs.io/en/v5.3.0/usage/use_the_lib.html#material-system
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-		aiString material_name = material->GetName();
-		textures = this->loadMaterialTextures(material, aiTextureType_DIFFUSE);
-	}
 
 	return std::make_unique<Mesh>(vertices, indices, textures);
 }

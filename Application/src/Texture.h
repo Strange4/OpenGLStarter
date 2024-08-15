@@ -18,5 +18,4 @@ public:
     inline int getWidth() const { return this->m_width; }
     inline int getHeight() const { return this->m_height; }
     inline std::string getFilePath() const { return this->m_file_path; }
-
 };

@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include <iostream>
+#include <type_traits>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,19 +14,18 @@
 #include "Application.h"
 #include "Renderer.h"
 #include "Camera.h"
-#include "Setup.h"
+#include "Setup.h" 
 
 
 Application::Application()
-    : m_window(nullptr), m_window_width((int) this->START_WINDOW_WIDTH), m_window_height((int) this->START_WINDOW_HEIGHT),
-    m_shader_program(ShaderProgram({
-        Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
-        Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
+    : m_window(nullptr),
+    m_shader_program(std::make_unique<ShaderProgram>(std::vector<Shader>{
+            Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
+            Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
         })),
     m_renderer(Renderer((int) this->START_WINDOW_WIDTH, (int) this->START_WINDOW_HEIGHT)),
     m_model_scale(1.0f), m_model_rotation(0.0f), m_state(ApplicationState::Moving)
 {
-    
 }
 
 void Application::mainLoop()
@@ -47,26 +47,17 @@ void Application::mainLoop()
         this->m_camera.handle_keys(this->m_window, this->m_renderer, (float)(newTime - previousTime));
         previousTime = newTime;
 
-        this->m_shader_program.bind();
-        this->m_shader_program.setUniform4f("u_color", sin(previousTime), cos(previousTime), 1.0f, 1.0f);
+        this->m_shader_program->bind();
 
         // contatenating the matrices
         glm::mat4 model = glm::rotate(glm::mat4(1.0f), this->m_model_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(this->m_model_scale));
         this->m_current_model.get()->setTransform(model);
 
-        this->m_renderer.drawModels(this->m_shader_program);
+        this->m_renderer.drawModels(*this->m_shader_program);
 
         this->renderGui();
-
-        // change model if it was changed
-        if (this->m_file_dialog.IsOk())
-        {
-            std::string filePath = this->m_file_dialog.GetFilePathName();
-            std::shared_ptr<Model> newModel = std::make_shared<Model>(filePath);
-            this->setModel(newModel);
-        }
-
+        
         /* Swap front and back buffers */
         glfwSwapBuffers(this->m_window);
 
@@ -130,15 +121,63 @@ void Application::setGui()
         ImGui::SliderFloat("Model Scale", &this->m_model_scale, 0.0f, 10.0f);
         ImGui::SliderFloat("Model Rotation", &this->m_model_rotation, -glm::two_pi<float>(), glm::two_pi<float>());
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-        if (ImGui::CollapsingHeader("File Model Selection"))
+        if (ImGui::Button("Load model"))
         {
             IGFD::FileDialogConfig config;
             config.path = "./res/models/";
-            config.flags = ImGuiFileDialogFlags_NoDialog | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
-            this->m_file_dialog.OpenDialog("bool", "Select this thoasdjf;aldfasdf", ".obj", config);
-            this->m_file_dialog.Display("bool", ImGuiWindowFlags_None);
+            config.flags = ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+            ImGuiFileDialog::Instance()->OpenDialog("model_file_picker", "Select a new model to load", "{.obj,.fbx}", config);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load fragment shader"))
+        {
+            IGFD::FileDialogConfig config;
+            config.path = "./res/shaders/";
+            config.flags = ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+            ImGuiFileDialog::Instance()->OpenDialog("fragment_file_picker", "Select a new fragment shader to load", ".glsl", config);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load vertex shader"))
+        {
+            IGFD::FileDialogConfig config;
+            config.path = "./res/shaders/";
+            config.flags = ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+            ImGuiFileDialog::Instance()->OpenDialog("vertex_file_picker", "Select a new vertex shader to load", ".glsl", config);
         }
     }
+
+    // model picker
+    if (ImGuiFileDialog::Instance()->Display("model_file_picker"))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+            std::shared_ptr<Model> newModel = std::make_shared<Model>(filePath);
+            this->setModel(newModel);
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+    // fragment picker
+    if (ImGuiFileDialog::Instance()->Display("fragment_file_picker"))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+            this->replaceShader(filePath, GL_FRAGMENT_SHADER);
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+    // vertex picker
+    if (ImGuiFileDialog::Instance()->Display("vertex_file_picker"))
+    {
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+            this->replaceShader(filePath, GL_VERTEX_SHADER);
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+
     
     switch (this->m_state)
     {
@@ -151,4 +190,21 @@ void Application::setGui()
     }
 
     ImGui::End();
+}
+
+void Application::replaceShader(const std::string& file_path, GLenum shader_type)
+{
+    this->m_shader_program->deleteShaderType(shader_type);
+    std::vector<Shader> shaders = this->m_shader_program->getShaders();
+    shaders.push_back(Shader(file_path, shader_type));
+    GLsizei count = 0;
+    GLuint attachedShaders[5];
+    glGetAttachedShaders(this->m_shader_program->getId(), 5, &count, attachedShaders);
+
+    std::unique_ptr<ShaderProgram> newProgram = std::make_unique<ShaderProgram>(shaders);
+
+    this->m_shader_program.reset();
+    this->m_shader_program = std::move(newProgram);
+
+    glGetAttachedShaders(this->m_shader_program->getId(), 5, &count, attachedShaders);
 }

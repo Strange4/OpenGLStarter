@@ -25,7 +25,7 @@ public:
 
     Renderer& getRenderer() { return this->m_renderer; }
     Camera& getCamera() { return this->m_camera; }
-    ApplicationState getState() { return this->m_state; }
+    ApplicationState getState() const { return this->m_state; }
 
     // starting defaults
     static constexpr float START_WINDOW_WIDTH = 1440.0f;
@@ -41,23 +41,20 @@ public:
     void operator=(Application const&) = delete;
 
 private:
-    // application state
-    ApplicationState m_state;
     Application();
 
     void renderGui();
     void setGui();
+    void replaceShader(const std::string& file_path, GLenum shader_type);
 
-
+    ApplicationState m_state;
     GLFWwindow* m_window;
-    int m_window_width, m_window_height;
     std::shared_ptr<Model> m_current_model;
-    ShaderProgram m_shader_program;
+    std::unique_ptr<ShaderProgram> m_shader_program;
     Renderer m_renderer;
     Camera m_camera;
 
     // settings
     float m_model_scale;
     float m_model_rotation;
-    ImGuiFileDialog m_file_dialog;
 };
