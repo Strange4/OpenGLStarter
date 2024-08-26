@@ -3,7 +3,6 @@
 #include <iostream>
 #include <type_traits>
 
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -19,13 +18,19 @@
 
 Application::Application()
     : m_window(nullptr),
-    m_shader_program(std::make_unique<ShaderProgram>(std::vector<Shader>{
-            Shader("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER),
-            Shader("res/shaders/vertex.glsl", GL_VERTEX_SHADER)
-        })),
+    m_object_shader(std::make_unique<ShaderProgram>()),
+    m_light_shader(std::make_unique<ShaderProgram>()),
     m_renderer(Renderer((int) this->START_WINDOW_WIDTH, (int) this->START_WINDOW_HEIGHT)),
     m_model_scale(1.0f), m_model_rotation(0.0f), m_state(ApplicationState::Moving)
 {
+    Shader fragment("res/shaders/fragment.glsl", GL_FRAGMENT_SHADER);
+    Shader vertex("res/shaders/vertex.glsl", GL_VERTEX_SHADER);
+    Shader light("res/shaders/light.glsl", GL_FRAGMENT_SHADER);
+
+    this->m_object_shader->attachAllShaders({ fragment, vertex });
+    this->m_light_shader->attachAllShaders({ light, vertex });
+    this->m_object_shader->link();
+    this->m_light_shader->link();
 }
 
 void Application::mainLoop()
@@ -47,15 +52,29 @@ void Application::mainLoop()
         this->m_camera.handle_keys(this->m_window, this->m_renderer, (float)(newTime - previousTime));
         previousTime = newTime;
 
-        this->m_shader_program->bind();
-
         // contatenating the matrices
         glm::mat4 model = glm::rotate(glm::mat4(1.0f), this->m_model_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(this->m_model_scale));
         this->m_current_model.get()->setTransform(model);
 
-        this->m_renderer.drawModels(*this->m_shader_program);
 
+        // lighting stuff
+
+        this->m_object_shader->setUniform3f("u_light_color", 1.0f, 1.0f, 1.0f);
+        this->m_object_shader->setUniform3f("u_light_pos", 1.2f, 1.5f, 2.0f);
+        this->m_object_shader->setUniform3f("u_camera_pos", this->m_camera.getPosition());
+
+        // materials
+        this->m_object_shader->setUniform3f("u_material.ambient", 1.0f, 0.5f, 0.31f);
+        this->m_object_shader->setUniform1f("u_material.ambient_strength", 0.5f);
+        this->m_object_shader->setUniform3f("u_material.diffuse", 1.0f, 0.5f, 0.31f);
+        this->m_object_shader->setUniform3f("u_material.specular", 0.5f, 0.5f, 0.5f);
+        this->m_object_shader->setUniform1f("u_material.specular_strength", 0.5f);
+        this->m_object_shader->setUniform1i("u_material.shininess", 32);
+        
+        // actually rendering
+        this->m_renderer.renderModel(this->m_current_model, *this->m_object_shader);
+        this->m_renderer.renderModel(this->m_light_model, *this->m_light_shader);
         this->renderGui();
         
         /* Swap front and back buffers */
@@ -74,9 +93,12 @@ void Application::mainLoop()
 
 void Application::setModel(std::shared_ptr<Model> model)
 {
-    this->m_renderer.removeModel(this->m_current_model);
     this->m_current_model = model;
-    this->m_renderer.addModel(model);
+}
+
+void Application::setLightModel(std::shared_ptr<Model> model)
+{
+    this->m_light_model = model;
 }
 
 void Application::setWindow(GLFWwindow* window)
@@ -108,7 +130,6 @@ void Application::renderGui()
 
     this->setGui();
 
-    // render imgui on top
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
@@ -178,33 +199,22 @@ void Application::setGui()
         ImGuiFileDialog::Instance()->Close();
     }
 
-    
-    switch (this->m_state)
-    {
-    case ApplicationState::Moving:
-        ImGui::SetWindowCollapsed(true);
-        break;
-    default:
-        ImGui::SetWindowCollapsed(false);
-        break;
-    }
-
     ImGui::End();
 }
 
 void Application::replaceShader(const std::string& file_path, GLenum shader_type)
 {
-    this->m_shader_program->deleteShaderType(shader_type);
-    std::vector<Shader> shaders = this->m_shader_program->getShaders();
+    this->m_object_shader->deleteShaderType(shader_type);
+    std::vector<Shader> shaders = this->m_object_shader->getShaders();
     shaders.push_back(Shader(file_path, shader_type));
     GLsizei count = 0;
     GLuint attachedShaders[5];
-    glGetAttachedShaders(this->m_shader_program->getId(), 5, &count, attachedShaders);
+    glGetAttachedShaders(this->m_object_shader->getId(), 5, &count, attachedShaders);
 
     std::unique_ptr<ShaderProgram> newProgram = std::make_unique<ShaderProgram>(shaders);
 
-    this->m_shader_program.reset();
-    this->m_shader_program = std::move(newProgram);
+    this->m_object_shader.reset();
+    this->m_object_shader = std::move(newProgram);
 
-    glGetAttachedShaders(this->m_shader_program->getId(), 5, &count, attachedShaders);
+    glGetAttachedShaders(this->m_object_shader->getId(), 5, &count, attachedShaders);
 }

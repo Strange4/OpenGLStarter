@@ -113,17 +113,42 @@ void ShaderProgram::unbind() const
 
 void ShaderProgram::setUniform4f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
-    glUniform4f(getUniformLocation(uniform_name), v0, v1, v2, v3);
+    glProgramUniform4f(this->m_id, getUniformLocation(uniform_name), v0, v1, v2, v3);
+}
+
+void ShaderProgram::setUniform4f(const std::string& uniform_name, const glm::vec4& vec)
+{
+    this->setUniform4f(uniform_name, vec.x, vec.y, vec.z, vec.w);
+}
+
+void ShaderProgram::setUniform1f(const std::string& uniform_name, GLfloat v0)
+{
+    glProgramUniform1f(this->m_id, getUniformLocation(uniform_name), v0);
+}
+
+void ShaderProgram::setUniform3f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2)
+{
+    glProgramUniform3f(this->m_id, getUniformLocation(uniform_name), v0, v1, v2);
+}
+
+void ShaderProgram::setUniform3f(const std::string& uniform_name, const glm::vec3& vec)
+{
+    this->setUniform3f(uniform_name, vec.x, vec.y, vec.z);
 }
 
 void ShaderProgram::setUniform1i(const std::string& uniform_name, GLint value)
 {
-    glUniform1i(getUniformLocation(uniform_name), value);
+    glProgramUniform1i(this->m_id, getUniformLocation(uniform_name), value);
+}
+
+void ShaderProgram::setUniformMatrix3f(const std::string& uniform_name, const glm::mat3& matrix)
+{
+    glProgramUniformMatrix3fv(this->m_id, getUniformLocation(uniform_name), 1, GL_FALSE, &matrix[0][0]);
 }
 
 void ShaderProgram::setUniformMatrix4f(const std::string& uniform_name, const glm::mat4& matrix)
 {
-    glUniformMatrix4fv(getUniformLocation(uniform_name), 1, GL_FALSE, &matrix[0][0]);
+    glProgramUniformMatrix4fv(this->m_id, getUniformLocation(uniform_name), 1, GL_FALSE, &matrix[0][0]);
 }
 
 GLint ShaderProgram::getUniformLocation(const std::string& uniform_name)

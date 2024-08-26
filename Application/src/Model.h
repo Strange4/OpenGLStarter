@@ -4,7 +4,6 @@
 #include <memory>
 #include <optional>
 #include <assimp/scene.h>
-#include <glm/glm.hpp>
 #include "Mesh.h"
 
 class Model
@@ -15,7 +14,8 @@ public:
     void draw(ShaderProgram& shader_program) const;
 
     glm::mat4 getTransform() const { return this->m_transform; }
-    void setTransform(glm::mat4 transform);
+    void addTransform(const glm::mat4& transform);
+    void setTransform(const glm::mat4& transform);
 private:
     std::vector<std::unique_ptr<Mesh>> m_meshes;
     std::vector<Texture> m_loaded_textures;

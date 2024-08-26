@@ -3,8 +3,6 @@
 #include "pch.h"
 #include <unordered_map>
 
-#include <glm/glm.hpp>
-
 class Shader
 {
 private:
@@ -63,13 +61,12 @@ public:
 
     /// <summary>
     /// Caches and binds the uniform with the given name to the specified values.
-    /// Note: The program must be bound or else OpenGL will throw an error
     /// </summary>
     /// <param name="uniform_name">the name of the uniform as stated in the shader</param>
-    /// <param name="v0">first value</param>
-    /// <param name="v1">second value</param>
-    /// <param name="v2">third value</param>
-    /// <param name="v3">fourth value</param>
+    void setUniform1f(const std::string& uniform_name, GLfloat v0);
+    void setUniform3f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2);
+    void setUniform3f(const std::string& uniform_name, const glm::vec3& vec);
+    void setUniform4f(const std::string& uniform_name, const glm::vec4& vec);
     void setUniform4f(const std::string& uniform_name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 
     /// <summary>
@@ -80,6 +77,7 @@ public:
     /// <param name="value">the value of the uniform</param>
     void setUniform1i(const std::string& uniform_name, GLint value);
 
+    void setUniformMatrix3f(const std::string& uniform_name, const glm::mat3& matrix);
     void setUniformMatrix4f(const std::string& uniform_name, const glm::mat4& matrix);
 
 private:

@@ -23,9 +23,14 @@ void Model::draw(ShaderProgram& shader_program) const
 	}
 }
 
-void Model::setTransform(glm::mat4 transform)
+void Model::addTransform(const glm::mat4& transform)
 {
 	this->m_transform *= transform;
+}
+
+void Model::setTransform(const glm::mat4& transform)
+{
+	this->m_transform = transform;
 }
 
 void Model::loadModel(std::string directory_path)

@@ -19,6 +19,7 @@ public:
 
     void mainLoop();
     void setModel(std::shared_ptr<Model> model);
+    void setLightModel(std::shared_ptr<Model> model);
     void setWindow(GLFWwindow* window);
     void setMovingState();
     void setEditingState();
@@ -49,8 +50,15 @@ private:
 
     ApplicationState m_state;
     GLFWwindow* m_window;
+
     std::shared_ptr<Model> m_current_model;
-    std::unique_ptr<ShaderProgram> m_shader_program;
+    std::shared_ptr<Model> m_light_model;
+
+    std::unique_ptr<ShaderProgram> m_object_shader;
+    std::unique_ptr<ShaderProgram> m_light_shader;
+
+    std::vector<Shader> m_used_shaders;
+
     Renderer m_renderer;
     Camera m_camera;
 

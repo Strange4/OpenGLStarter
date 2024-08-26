@@ -18,8 +18,8 @@ void Renderer::drawModels(ShaderProgram& shader_program) const
     shader_program.setUniformMatrix4f("u_view", this->m_view);
     for (const std::shared_ptr<Model>& model : this->m_models)
     {
-        shader_program.setUniformMatrix4f("u_model", model.get()->getTransform());
-        model.get()->draw(shader_program);
+        shader_program.setUniformMatrix4f("u_model", model->getTransform());
+        model->draw(shader_program);
     }
 }
 
@@ -63,4 +63,15 @@ void Renderer::addModel(std::shared_ptr<Model> model)
 void Renderer::removeModel(std::shared_ptr<Model> model)
 {
     std::erase(this->m_models, model);
+}
+
+void Renderer::renderModel(std::shared_ptr<Model> model, ShaderProgram& shader_program) const
+{
+    shader_program.setUniformMatrix4f("u_projection", this->m_projection);
+    shader_program.setUniformMatrix4f("u_view", this->m_view);
+    shader_program.setUniformMatrix4f("u_model", model->getTransform());
+
+    // setting the normal matrix so the normals can still be normal to the surface after being multiplied by the matrix
+    shader_program.setUniformMatrix3f("u_normal_mat", glm::transpose(glm::inverse(model->getTransform())));
+    model->draw(shader_program);
 }

@@ -16,6 +16,8 @@ public:
     void setProjectionTransform(glm::mat4 transformation);
     void addModel(std::shared_ptr<Model> model);
     void removeModel(std::shared_ptr<Model> model);
+    void renderModel(std::shared_ptr<Model> model, ShaderProgram& shader_program) const;
+    glm::mat4 getViewTransform() const { return this->m_view; }
 
     static void clear();
     static void draw(const VertexArray& vertex_array, GLsizei triangle_count, const ShaderProgram& shader_program);
@@ -28,5 +30,4 @@ private:
     int m_width, m_height;
 
     std::vector<std::shared_ptr<Model>> m_models;
-    
 };

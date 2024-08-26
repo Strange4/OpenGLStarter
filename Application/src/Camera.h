@@ -13,6 +13,7 @@ public:
     void handle_keys(GLFWwindow* window, Renderer& renderer, float delta_time);
     void handle_mouse_move(GLFWwindow* window, Renderer& renderer, float x_pos, float y_pos);
     void setMousePosition(glm::vec2 position);
+    glm::vec3 getPosition() const { return this->m_position; }
 private:
     static constexpr glm::vec3 CAMERA_UP = glm::vec3(0.0f, 1.0f, 0.0f);
 

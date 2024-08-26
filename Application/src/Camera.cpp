@@ -5,7 +5,7 @@
 #include "Camera.h"
 
 Camera::Camera()
-    : m_camera_speed(5.0f), m_front(glm::vec3(0.0f, 0.0f, -3.0f)), 
+    : m_camera_speed(5.0f), m_front(glm::vec3(0.0f, 0.0f, -1.0f)), 
     m_position(glm::vec3(0.0f, 0.0f, 5.0f)), 
     m_mouse_sensitivity(0.07f),
     m_last_mouse_x(0), m_last_mouse_y(0),

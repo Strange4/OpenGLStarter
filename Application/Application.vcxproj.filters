@@ -148,10 +148,63 @@
     <None Include="res\shaders\vertex.glsl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\models\contigo.mtl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\models\contigo_joined.mtl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\models\cube.mtl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\models\Isometric Room v5058 p4866.fbx">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\models\Seats_.fbx">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shaders\light.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\textures\brazil.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="res\models\alligator.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\box.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\contigo.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\contigo_joined.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\contigo_khaled.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\cow.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\cube.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\igea.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\mipan.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\teapot.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="res\models\teddy.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
   </ItemGroup>
 </Project>
