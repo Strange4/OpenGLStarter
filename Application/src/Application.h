@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "Camera.h"
+#include "Material.h"
 
 enum ApplicationState : uint8_t {
     Moving,
@@ -65,4 +66,5 @@ private:
     // settings
     float m_model_scale;
     float m_model_rotation;
+    Material m_material;
 };

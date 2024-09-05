@@ -1,3 +1,4 @@
+
 #version 330 core
 struct Material
 {
@@ -5,6 +6,7 @@ struct Material
     float ambient_strength;
 
     vec3 diffuse;
+    float diffuse_strength;
     
     vec3 specular;
     float specular_strength;
@@ -35,8 +37,8 @@ void main()
     // diffuse
     vec3 normal = normalize(v_normal);
     vec3 light_direction = normalize(u_light_pos - v_frag_pos);
-    float diffuse_strength = max(dot(normal, light_direction), 0.0);
-    vec3 diffuse = (diffuse_strength * u_material.diffuse) * u_light_color;
+    float diffuse_value = max(dot(normal, light_direction), 0.0);
+    vec3 diffuse = (diffuse_value * u_material.diffuse * u_material.diffuse_strength) * u_light_color;
 
     // specular
     // float specular_strength = 0.5;

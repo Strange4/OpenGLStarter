@@ -31,6 +31,16 @@ Application::Application()
     this->m_light_shader->attachAllShaders({ light, vertex });
     this->m_object_shader->link();
     this->m_light_shader->link();
+
+    this->m_material = {
+        .ambient = glm::vec3(1.0f, 0.5f, 0.31f),
+        .ambient_strength = 0.5f,
+        .diffuse = glm::vec3(1.0f, 0.5f, 0.31f),
+        .diffuse_strength = 0.5f,
+        .specular = glm::vec3(0.5f, 0.5f, 0.5f),
+        .specular_strength = 0.5f,
+        .shininess = 32,
+    };
 }
 
 void Application::mainLoop()
@@ -65,12 +75,13 @@ void Application::mainLoop()
         this->m_object_shader->setUniform3f("u_camera_pos", this->m_camera.getPosition());
 
         // materials
-        this->m_object_shader->setUniform3f("u_material.ambient", 1.0f, 0.5f, 0.31f);
-        this->m_object_shader->setUniform1f("u_material.ambient_strength", 0.5f);
-        this->m_object_shader->setUniform3f("u_material.diffuse", 1.0f, 0.5f, 0.31f);
-        this->m_object_shader->setUniform3f("u_material.specular", 0.5f, 0.5f, 0.5f);
-        this->m_object_shader->setUniform1f("u_material.specular_strength", 0.5f);
-        this->m_object_shader->setUniform1i("u_material.shininess", 32);
+        this->m_object_shader->setUniform3f("u_material.ambient", this->m_material.ambient);
+        this->m_object_shader->setUniform1f("u_material.ambient_strength", this->m_material.ambient_strength);
+        this->m_object_shader->setUniform3f("u_material.diffuse", this->m_material.diffuse);
+        this->m_object_shader->setUniform1f("u_material.diffuse_strength", this->m_material.diffuse_strength);
+        this->m_object_shader->setUniform3f("u_material.specular", this->m_material.specular);
+        this->m_object_shader->setUniform1f("u_material.specular_strength", this->m_material.specular_strength);
+        this->m_object_shader->setUniform1i("u_material.shininess", this->m_material.shininess);
         
         // actually rendering
         this->m_renderer.renderModel(this->m_current_model, *this->m_object_shader);
@@ -139,8 +150,24 @@ void Application::setGui()
     // only render if it's open
     if (ImGui::Begin("Matrix Settings"))
     {
+        // transform edit
         ImGui::SliderFloat("Model Scale", &this->m_model_scale, 0.0f, 10.0f);
         ImGui::SliderFloat("Model Rotation", &this->m_model_rotation, -glm::two_pi<float>(), glm::two_pi<float>());
+
+        // material edit
+        ImGui::ColorEdit3("Ambient Color", glm::value_ptr(this->m_material.ambient));
+
+        ImGui::SliderFloat("Ambient Strength", &this->m_material.ambient_strength, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Diffuse Color", glm::value_ptr(this->m_material.diffuse));
+
+        ImGui::SliderFloat("Diffuse Strength", &this->m_material.diffuse_strength, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Specular Color", glm::value_ptr(this->m_material.specular));
+
+        ImGui::SliderFloat("Specular Strength", &this->m_material.specular_strength, 0.0f, 1.0f);
+
+        ImGui::SliderInt("Shininess", &this->m_material.shininess, 0, 50);
+       
+
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
         if (ImGui::Button("Load model"))
         {
